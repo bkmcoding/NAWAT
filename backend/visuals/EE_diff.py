@@ -54,6 +54,20 @@ post_nbr = post_fire_img.normalizedDifference(['B8', 'B12']).rename('NBR_post')
 dnbr = pre_nbr.subtract(post_nbr).rename('dNBR')
 Swipe_Map = geemap.Map(center=[40.0632, -121.3283], zoom=10)
 
+vis_params_true_color = {
+    'bands': ['B4', 'B3', 'B2'],
+    'min': 0.0,
+    'max': 0.3,
+}
+
+# Defining burn color palette
+vis_params_dnbr = {
+    'min': -0.1,
+    'max': 0.8,
+    'palette': ['#008000', '#ffff00', '#ffA500', '#ff0000', '#800080'] 
+                # Green     Yellow     Orange       Red       Purple
+}
+
 left_layer = geemap.ee_tile_layer(pre_fire_img, vis_params_true_color, 'Pre-Fire')
 right_layer = geemap.ee_tile_layer(post_fire_img, vis_params_true_color, 'Post-Fire')
 

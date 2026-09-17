@@ -1,0 +1,6 @@
+# Files
+*.venv
+*.json
+.env
+*.ipynb_checkpoints
+*__pycache__
