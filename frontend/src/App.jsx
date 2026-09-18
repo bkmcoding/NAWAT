@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const MAPBOX_TOKEN = import.meta.env.MAPBOX_TOKEN;;
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;;
 
 export default function App() {
   const [tileUrl, setTileUrl] = useState(null);
@@ -24,12 +24,17 @@ export default function App() {
           post_fire_end: '2021-10-15'
         })
       });
-      
+      if (!response.ok) {
+        throw new Error(`Fire analysis failed (${response.status})`);
+      }
       const data = await response.json();
       if (data.status === 'success') {
         setTileUrl(data.tile_url);
+      if (data.status !== 'success' || !data.tile_url) {
+        throw new Error('Fire analysis returned no tile URL');
       }
-    } catch (error) {
+      setTileUrl(data.tile_url);
+    }} catch (error) {
       console.error("Failed to fetch fire data:", error);
     }
     setIsLoading(false);
