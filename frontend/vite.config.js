@@ -1,7 +1,12 @@
-import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // Bypasses the strict package.json "exports" check
+      'react-map-gl': 'react-map-gl/dist/esm/index.js'
+    }
+  }
 })

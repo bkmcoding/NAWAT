@@ -1,122 +1,90 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import Map, { Source, Layer } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;;
+
+export default function App() {
+  const [tileUrl, setTileUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAnalyzeFire = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/analyze-fire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lng: -121.3283,
+          lat: 40.0632,
+          radius_meters: 30000,
+          pre_fire_start: '2021-06-01',
+          pre_fire_end: '2021-07-01',
+          post_fire_start: '2021-09-15',
+          post_fire_end: '2021-10-15'
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`Fire analysis failed (${response.status})`);
+      }
+      const data = await response.json();
+      if (data.status === 'success') {
+        setTileUrl(data.tile_url);
+      if (data.status !== 'success' || !data.tile_url) {
+        throw new Error('Fire analysis returned no tile URL');
+      }
+      setTileUrl(data.tile_url);
+    }} catch (error) {
+      console.error("Failed to fetch fire data:", error);
+    }
+    setIsLoading(false);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      
+      {}
+      <div style={{
+        position: 'absolute', top: 20, left: 20, zIndex: 10,
+        backgroundColor: '#1e1e1e', color: 'white', padding: '20px', 
+        borderRadius: '8px', fontFamily: 'sans-serif'
+      }}>
+        <h2>NAWAT: North American Wildfire Analysis Tool</h2>
+        <button 
+          onClick={handleAnalyzeFire}
+          disabled={isLoading}
+          style={{
+            padding: '10px 20px', cursor: 'pointer',
+            backgroundColor: isLoading ? '#555' : '#ff4500', 
+            color: 'white', border: 'none', borderRadius: '4px'
+          }}
         >
-          Count is {count}
+          {isLoading ? 'Processing Satellite Data...' : 'Load Dixie Fire (2021)'}
         </button>
-      </section>
+      </div>
 
-      <div className="ticks"></div>
+      {}
+      <Map
+        initialViewState={{
+          longitude: -121.3283,
+          latitude: 40.0632,
+          zoom: 9
+        }}
+        mapStyle="mapbox://styles/mapbox/dark-v11"
+        mapboxAccessToken={MAPBOX_TOKEN}
+      >
+        {}
+        {tileUrl && (
+          <Source id="earth-engine" type="raster" tiles={[tileUrl]} tileSize={256}>
+            <Layer 
+              id="dnbr-overlay" 
+              type="raster" 
+              paint={{ 'raster-opacity': 0.8 }} 
+            />
+          </Source>
+        )}
+      </Map>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    </div>
+  );
 }
-
-export default App

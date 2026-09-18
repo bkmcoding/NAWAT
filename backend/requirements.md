@@ -1,7 +1,11 @@
+### Required
 gee map
 earthengine-api
 fastapi
 uvicorn
 
-# Not Required (Only for analysis)
+### External
+Earth Engine API key
+
+### Not Required (Only for analysis)
 jupyter
