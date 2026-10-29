@@ -40,11 +40,11 @@ export default function App() {
   };
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', backgroundColor: '#111' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: '#111' }}>
       
       {/* Analytics Dashboard Panel */}
       <div style={{
-        position: 'absolute', top: 20, left: 20, zIndex: 10, width: '360px',
+        position: 'absolute', top: 20, left: 20, zIndex: 10, width: 'min(360px, calc(100% - 40px))',
         backgroundColor: '#1e1e1e', color: 'white', padding: '24px', 
         borderRadius: '12px', fontFamily: 'sans-serif', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         maxHeight: '90vh', overflowY: 'auto'
