@@ -3,16 +3,20 @@ import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const API_ORIGIN = 'http://localhost:8000';
+const API_URL = `${API_ORIGIN}/api/analyze-fire`;
 
 export default function App() {
   const [mapData, setMapData] = useState({ tiles: null, metrics: null });
   const [activeLayer, setActiveLayer] = useState('burn_severity');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleAnalyzeFire = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch('http://localhost:8000/api/analyze-fire', {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -22,15 +26,42 @@ export default function App() {
         })
       });
       
-      const data = await response.json();
-      if (data.status === 'success') {
-        setMapData({ tiles: data.tiles, metrics: data.metrics });
-        setActiveLayer('burn_severity'); // Reset to burn layer on new load
+      if (!response.ok) {
+        let detail = '';
+        try {
+          const body = await response.json();
+          if (typeof body?.detail === 'string') detail = body.detail;
+        } catch {
+          // Error body wasn't JSON; the status code is still useful.
+        }
+        throw new Error(`Analysis failed (HTTP ${response.status})${detail ? `: ${detail}` : '.'}`);
       }
-    } catch (error) {
-      console.error("Failed to fetch fire data:", error);
+
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('The analysis server returned an unexpected response.');
+      }
+
+      if (data.status !== 'success' || !data.tiles || !data.metrics) {
+        throw new Error('The analysis server returned an unexpected response.');
+      }
+
+      setMapData({ tiles: data.tiles, metrics: data.metrics });
+      setActiveLayer('burn_severity'); // Reset to burn layer on new load
+    } catch (err) {
+      console.error('Failed to fetch fire data:', err);
+      // Browsers throw TypeError when the request never reaches the server.
+      const isNetworkError = err instanceof TypeError;
+      setError(
+        isNetworkError
+          ? `Could not reach the analysis server at ${API_ORIGIN}. Check that the backend is running, then try again.`
+          : err.message || 'The analysis failed for an unknown reason.'
+      );
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   // Helper to calculate percentages for the CSS bar charts
@@ -64,6 +95,20 @@ export default function App() {
         >
           {isLoading ? 'Extracting Terrain Data...' : 'Analyze Dixie Fire'}
         </button>
+
+        {error && (
+          <div
+            role="alert"
+            style={{
+              marginBottom: '20px', padding: '12px 14px', borderRadius: '6px',
+              backgroundColor: '#3a1414', border: '1px solid #7f1d1d',
+              color: '#fca5a5', fontSize: '13px', lineHeight: 1.5,
+              textAlign: 'left', wordBreak: 'break-word'
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         {mapData.metrics && (
           <div style={{ animation: 'fadeIn 0.5s ease-in' }}>
