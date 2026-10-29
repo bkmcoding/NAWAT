@@ -1,0 +1,6 @@
+# Runtime dependencies for the FastAPI analysis server.
+# Versions match the environment this checkout was tested with.
+fastapi==0.141.1
+uvicorn==0.53.0
+earthengine-api==1.7.42
+python-dotenv==1.2.3

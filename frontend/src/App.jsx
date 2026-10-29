@@ -3,7 +3,9 @@ import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-const API_ORIGIN = 'http://localhost:8000';
+// Optional backend origin; falls back to the local FastAPI dev server.
+// Trailing slashes are stripped so VITE_API_URL=http://host:8000/ works too.
+const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
 const API_URL = `${API_ORIGIN}/api/analyze-fire`;
 
 export default function App() {
